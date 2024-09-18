@@ -1,25 +1,33 @@
 const express = require('express');
 const { Pool } = require('pg');
 const bodyParser = require('body-parser');
-
-// Підключення до PostgreSQL
-const pool = new Pool({
-    user: 'postgres',       // Заміни на свого користувача PostgreSQL
-    host: 'localhost',           // Якщо використовуєш локальну базу
-    database: 'wellact',         // Назва бази даних
-    password: 'fughzxio31052005d',   // Пароль користувача
-    port: 5432                   // Порт за замовчуванням для PostgreSQL
-});
+const path = require('path');  // Додано для обробки статичних файлів
 
 const app = express();
+const port = process.env.PORT || 3000;
+
+// Підключення до PostgreSQL через змінну середовища
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,  // Використовуємо змінну середовища для PostgreSQL на Render
+    ssl: { rejectUnauthorized: false }  // SSL підключення, необхідне для Render
+});
+
 app.use(bodyParser.json());
+
+// Обслуговування статичних файлів (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Маршрут для кореневого шляху
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));  // Відправляємо HTML-файл
+});
 
 // API для створення або оновлення користувача
 app.post('/api/users', async (req, res) => {
     const { id, name, points, level, friends, referralCode, friendsList, referredBy } = req.body;
 
     try {
-        // Перевіряємо, чи користувач вже існує
+        // Перевірка, чи користувач вже існує
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
 
         if (result.rows.length === 0) {
@@ -35,7 +43,6 @@ app.post('/api/users', async (req, res) => {
                 [points, level, friends, referralCode, friendsList, referredBy, id]
             );
         }
-
         res.status(200).send({ message: 'User data saved or updated' });
     } catch (err) {
         console.error(err);
@@ -59,5 +66,5 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
+// Запуск сервера
 app.listen(port, () => console.log(`Listening on port ${port}`));
