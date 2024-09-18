@@ -1,76 +1,74 @@
 const express = require('express');
 const { Pool } = require('pg');
-const bodyParser = require('body-parser');
-const path = require('path');  // Додано для обробки статичних файлів
+const cors = require('cors');
 
+// Ініціалізуємо сервер
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-// Підключення до PostgreSQL через змінну середовища
-const { Pool } = require('pg');
-
+// Підключення до PostgreSQL
 const pool = new Pool({
     user: 'wellact_db_user',
-    host: 'your-external-database-url',  // Переконайся, що це зовнішній URL бази даних
+    host: 'postgresql://wellact_db_user:Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT@dpg-crlaf0ogph6c73e2g770-a.oregon-postgres.render.com/wellact_db',  // Заміни на зовнішній URL бази даних
     database: 'wellact_db',
     password: 'Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT',
     port: 5432,
+    ssl: { rejectUnauthorized: false }
 });
 
+// Middleware для обробки JSON та CORS
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));  // Для обробки статичних файлів, таких як index.html, стилі та скрипти
 
-app.use(bodyParser.json());
-
-// Обслуговування статичних файлів (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Маршрут для кореневого шляху
+// Маршрут для перевірки стану сервера
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));  // Відправляємо HTML-файл
+    res.sendFile(__dirname + '/public/index.html');
 });
 
-// API для створення або оновлення користувача
-app.post('/api/users', async (req, res) => {
-    const { id, name, points, level, friends, referralCode, friendsList, referredBy } = req.body;
-
+// Маршрут для отримання всіх користувачів з бази даних
+app.get('/api/users', async (req, res) => {
     try {
-        // Перевірка, чи користувач вже існує
-        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-
-        if (result.rows.length === 0) {
-            // Створення нового користувача
-            await pool.query(
-                'INSERT INTO users (id, name, points, level, friends, referralCode, friendsList, referredBy) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [id, name, points, level, friends, referralCode, friendsList, referredBy]
-            );
-        } else {
-            // Оновлення наявного користувача
-            await pool.query(
-                'UPDATE users SET points = $1, level = $2, friends = $3, referralCode = $4, friendsList = $5, referredBy = $6 WHERE id = $7',
-                [points, level, friends, referralCode, friendsList, referredBy, id]
-            );
-        }
-        res.status(200).send({ message: 'User data saved or updated' });
+        const result = await pool.query('SELECT * FROM users');
+        res.status(200).json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server error');
+        res.status(500).json({ error: 'Помилка отримання даних' });
     }
 });
 
-// API для отримання користувача за ID
-app.get('/api/users/:id', async (req, res) => {
+// Маршрут для додавання користувача в базу
+app.post('/api/users', async (req, res) => {
+    const { id, name, points, level, referralCode, referredBy } = req.body;
     try {
-        const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
-
-        if (result.rows.length === 0) {
-            return res.status(404).send('User not found');
-        }
-
-        res.send(result.rows[0]);
+        const result = await pool.query(
+            'INSERT INTO users (id, name, points, level, referral_code, referred_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [id, name, points, level, referralCode, referredBy]
+        );
+        res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server error');
+        res.status(500).json({ error: 'Помилка збереження даних' });
+    }
+});
+
+// Маршрут для оновлення даних користувача
+app.put('/api/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { points, level, friends } = req.body;
+    try {
+        const result = await pool.query(
+            'UPDATE users SET points = $1, level = $2, friends = $3 WHERE id = $4 RETURNING *',
+            [points, level, friends, id]
+        );
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Помилка оновлення даних' });
     }
 });
 
 // Запуск сервера
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.listen(PORT, () => {
+    console.log(`Сервер запущений на порту ${PORT}`);
+});
