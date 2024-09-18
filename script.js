@@ -1,6 +1,4 @@
 // Ініціалізація Supabase
-const { createClient } = supabase;
-
 const supabaseUrl = 'https://xtmtpukdmqjimgycpwtx.supabase.co'; // Замініть на свій URL
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bXRwdWtkbXFqaW1neWNwd3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2OTIxMDcsImV4cCI6MjA0MjI2ODEwN30.kzcR2cBf-E_jJjMy9WXekp14Q_qYVjwMInPKUCeHICg'; // Вставте свій API ключ
 const supabase = createClient(supabaseUrl, supabaseKey);
