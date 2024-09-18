@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const initData = window.Telegram.WebApp.initData;
-    const user = window.Telegram.WebApp.initDataUnsafe.user;
-    const referralCode = window.Telegram.WebApp.initDataUnsafe.start_param; // Зчитуємо реферальний код
+    const user = window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : null;
+    const referralCode = window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.start_param : null;
 
     if (user) {
         console.log("Ім'я користувача: ", user.first_name);
@@ -13,12 +13,11 @@ document.addEventListener("DOMContentLoaded", function() {
             friends: 0,
             referralCode: generateReferralCode(),
             friendsList: [],
-            referredBy: referralCode || null,  // Якщо користувач прийшов за реферальним кодом
+            referredBy: referralCode || null
         };
 
         saveToDatabase(userData);
 
-        // Показуємо екран з метеликом і кнопкою CLAIM
         document.getElementById("main-screen").style.display = "block";
 
         if (referralCode) {
@@ -35,7 +34,6 @@ document.getElementById("claim-button").addEventListener("click", function() {
     document.getElementById("main-screen").style.display = "none";
     document.getElementById("interface-screen").style.display = "block";
 
-    // Оновлюємо рівень і прогрес користувача
     updateLevel(0); // Початковий рівень 1
 });
 
@@ -180,4 +178,3 @@ function goBack() {
     document.getElementById("market-screen").style.display = "none";
     document.getElementById("interface-screen").style.display = "block";
 }
-// 11

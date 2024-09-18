@@ -8,13 +8,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Екран з метеликом та кнопкою CLAIM -->
     <div id="main-screen" style="display:none;">
         <img src="butterfly.png" alt="Butterfly" class="butterfly">
         <button id="claim-button">CLAIM</button>
     </div>
 
-    <!-- Сторінка рівня після натискання CLAIM -->
     <div id="interface-screen" style="display:none;">
         <img src="butterfly.png" alt="Butterfly" class="butterfly">
         <div class="level">1 LVL</div>
@@ -30,7 +28,6 @@
         </div>
     </div>
 
-    <!-- Сторінка друзів -->
     <div id="friends-screen" style="display:none;">
         <button class="back-button" onclick="goBack()">← Back</button>
         <h2>Your Friends</h2>
@@ -38,14 +35,12 @@
         <div id="friends-list"></div>
     </div>
 
-    <!-- Сторінка завдань -->
     <div id="tasks-screen" style="display:none;">
         <button class="back-button" onclick="goBack()">← Back</button>
         <h2>Tasks</h2>
         <div id="tasks-list"></div>
     </div>
 
-    <!-- Сторінка маркету -->
     <div id="market-screen" style="display:none;">
         <button class="back-button" onclick="goBack()">← Back</button>
         <h2>Coming soon...</h2>
@@ -54,5 +49,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 111 -->

@@ -1,45 +1,44 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 
-// Підключення до PostgreSQL
+// Підключення до PostgreSQL через змінні оточення
 const pool = new Pool({
-    user: 'postgres',       // Заміни на свого користувача PostgreSQL
-    host: 'localhost',           // Якщо використовуєш локальну базу
-    database: 'wellact',         // Назва бази даних
-    password: 'fughzxio31052005d',   // Пароль користувача
-    port: 5432                   // Порт за замовчуванням для PostgreSQL
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT || 5432
 });
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.static('public'));  // Для статичних файлів, таких як index.html
 
 // API для створення або оновлення користувача
 app.post('/api/users', async (req, res) => {
     const { id, name, points, level, friends, referralCode, friendsList, referredBy } = req.body;
 
     try {
-        // Перевіряємо, чи користувач вже існує
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
 
         if (result.rows.length === 0) {
-            // Створення нового користувача
             await pool.query(
                 'INSERT INTO users (id, name, points, level, friends, referralCode, friendsList, referredBy) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [id, name, points, level, friends, referralCode, friendsList, referredBy]
             );
+            res.status(201).json({ message: 'New user created successfully' });
         } else {
-            // Оновлення наявного користувача
             await pool.query(
                 'UPDATE users SET points = $1, level = $2, friends = $3, referralCode = $4, friendsList = $5, referredBy = $6 WHERE id = $7',
                 [points, level, friends, referralCode, friendsList, referredBy, id]
             );
+            res.status(200).json({ message: 'User data updated successfully' });
         }
-
-        res.status(200).send({ message: 'User data saved or updated' });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error during user update' });
     }
 });
 
@@ -49,13 +48,13 @@ app.get('/api/users/:id', async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).send('User not found');
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        res.send(result.rows[0]);
+        res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error during fetching user data' });
     }
 });
 
