@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const user = window.Telegram.WebApp.initDataUnsafe.user || { username: 'guest', id: null };
-    
+
     const initialPage = document.getElementById("initial-page");
     const mainPage = document.getElementById("main-page");
     const getButton = document.getElementById("get-button");
@@ -10,9 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
     usernameElement.innerText = user.username;
     avatarElement.src = user.photo_url || 'default-avatar.png';
 
+    // Додано лог для перевірки чи дані користувача коректні
+    console.log('User data:', user);
+
     checkIfUserGotButterfly();
 
     getButton.addEventListener("click", async () => {
+        // Лог для перевірки, чи спрацьовує клік на кнопку
+        console.log('GET button clicked');
+
         const userData = {
             id: user.id || Date.now(), // fallback ID if user.id is not available
             name: user.username || 'guest',
@@ -28,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
+
+            // Лог результату запиту
+            console.log('Response from /api/users:', response);
 
             if (response.ok) {
                 initialPage.style.display = "none";
@@ -54,6 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
     async function checkIfUserGotButterfly() {
         try {
             const response = await fetch(`/api/users/${user.id}`);
+            console.log('Response from /api/users/:id:', response);
+
             if (response.ok) {
                 const userData = await response.json();
                 if (userData.gotButterfly) {
