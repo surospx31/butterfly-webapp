@@ -1,40 +1,31 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const initData = window.Telegram.WebApp.initData;
-    const user = window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : null;
-    const referralCode = window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.start_param : null;
+// Ініціалізація Supabase
+const { createClient } = supabase;
 
-    if (user) {
-        console.log("Ім'я користувача: ", user.first_name);
-        const userData = {
-            id: user.id,
-            name: user.first_name,
-            points: 0,
+const supabaseUrl = 'https://xtmtpukdmqjimgycpwtx.supabase.co'; // Замініть на свій URL
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bXRwdWtkbXFqaW1neWNwd3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2OTIxMDcsImV4cCI6MjA0MjI2ODEwN30.kzcR2cBf-E_jJjMy9WXekp14Q_qYVjwMInPKUCeHICg'; // Вставте свій API ключ
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+document.addEventListener("DOMContentLoaded", async function() {
+    const userId = '12345';  // Наприклад, отриманий з Telegram WebApp або іншого джерела
+
+    // Зчитуємо користувача з бази даних Supabase
+    let user = await getUserFromSupabase(userId);
+
+    if (!user) {
+        // Якщо користувач не існує, зберігаємо нові дані
+        const newUser = {
+            id: userId,
+            name: 'John Doe',
+            points: 10,
             level: 1,
-            friends: 0,
-            referralCode: generateReferralCode(),
-            friendsList: [],
-            referredBy: referralCode || null
+            referral_code: generateReferralCode(),
+            friends: 0
         };
-
-        saveToDatabase(userData);
-
-        document.getElementById("main-screen").style.display = "block";
-
-        if (referralCode) {
-            console.log(`Користувача запросив ${referralCode}`);
-            processReferral(referralCode, userData.id);
-        }
+        await saveUserToSupabase(newUser);
     } else {
-        alert("Не вдалося отримати дані користувача.");
+        console.log('Користувач вже існує', user);
+        updateUI(user);  // Оновлюємо інтерфейс користувача з отриманими даними
     }
-});
-
-// Кнопка CLAIM
-document.getElementById("claim-button").addEventListener("click", function() {
-    document.getElementById("main-screen").style.display = "none";
-    document.getElementById("interface-screen").style.display = "block";
-
-    updateLevel(0); // Початковий рівень 1
 });
 
 // Генерація унікального реферального коду
@@ -47,48 +38,59 @@ function generateReferralCode() {
     return result;
 }
 
-// Збереження даних користувача
-function saveToDatabase(userData) {
-    let allUsers = JSON.parse(localStorage.getItem("allUsers")) || [];
-    const existingUserIndex = allUsers.findIndex(user => user.id === userData.id);
+// Збереження нового користувача в Supabase
+async function saveUserToSupabase(userData) {
+    const { data, error } = await supabase
+        .from('users')
+        .insert([userData]);
 
-    if (existingUserIndex >= 0) {
-        userData.friendsList = allUsers[existingUserIndex].friendsList || [];
-        allUsers[existingUserIndex] = userData;
+    if (error) {
+        console.error('Помилка збереження користувача:', error);
     } else {
-        allUsers.push(userData);
+        console.log('Користувач успішно збережений:', data);
     }
-
-    localStorage.setItem("allUsers", JSON.stringify(allUsers));
 }
 
-// Обробка реферального коду
-function processReferral(referralCode, newUserId) {
-    let allUsers = JSON.parse(localStorage.getItem("allUsers")) || [];
+// Зчитування даних користувача з Supabase
+async function getUserFromSupabase(userId) {
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    const referringUserIndex = allUsers.findIndex(user => user.referralCode === referralCode);
-
-    if (referringUserIndex >= 0) {
-        const referringUser = allUsers[referringUserIndex];
-
-        if (!referringUser.friendsList) {
-            referringUser.friendsList = [];
-        }
-        referringUser.friendsList.push(newUserId);
-
-        referringUser.friends += 1;
-        referringUser.points += 5;
-
-        allUsers[referringUserIndex] = referringUser;
-        localStorage.setItem("allUsers", JSON.stringify(allUsers));
-
-        console.log(`Користувачу ${referringUser.name} додано 5 балів за запрошення.`);
+    if (error) {
+        console.error('Помилка отримання користувача:', error);
+        return null;
     }
+
+    console.log('Отримані дані користувача:', data);
+    return data;
+}
+
+// Оновлення даних користувача в Supabase
+async function updateUserInSupabase(userId, updatedData) {
+    const { data, error } = await supabase
+        .from('users')
+        .update(updatedData)
+        .eq('id', userId);
+
+    if (error) {
+        console.error('Помилка оновлення даних користувача:', error);
+    } else {
+        console.log('Дані користувача оновлені:', data);
+    }
+}
+
+// Оновлення інтерфейсу користувача
+function updateUI(userData) {
+    document.querySelector(".level").textContent = `${userData.level} LVL`;
+    const progressPercentage = (userData.points / ((userData.level) * 5)) * 100;
+    document.querySelector(".progress").style.width = `${progressPercentage}%`;
 }
 
 // Оновлення рівня і прогрес бару
 function updateLevel(points) {
-    const userData = JSON.parse(localStorage.getItem("userData"));
     let requiredPoints = (userData.level) * 5;
     userData.points += points;
 
@@ -98,83 +100,13 @@ function updateLevel(points) {
         requiredPoints = (userData.level) * 5;
     }
 
-    const progressPercentage = (userData.points / requiredPoints) * 100;
-    document.querySelector(".progress").style.width = `${progressPercentage}%`;
-    document.querySelector(".level").textContent = `${userData.level} LVL`;
-
-    saveToDatabase(userData);
+    updateUI(userData);
+    updateUserInSupabase(userData.id, { points: userData.points, level: userData.level });
 }
 
-// Відкриття основного екрану
-function openMain() {
-    document.getElementById("interface-screen").style.display = "none";
-    document.getElementById("main-screen").style.display = "block";
-}
-
-// Відкриття сторінки друзів
-function openFriends() {
-    document.getElementById("interface-screen").style.display = "none";
-    document.getElementById("friends-screen").style.display = "block";
-
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    if (userData) {
-        showFriendsList(userData.id);
-        document.getElementById("referral-link").textContent = `Your referral link: https://t.me/devionsxtest_bot?start=${userData.referralCode}`;
-    }
-}
-
-// Показ списку друзів
-function showFriendsList(userId) {
-    const allUsers = JSON.parse(localStorage.getItem("allUsers")) || [];
-    const currentUser = allUsers.find(user => user.id === userId);
-
-    if (currentUser && currentUser.friendsList && currentUser.friendsList.length > 0) {
-        const friendsList = document.getElementById("friends-list");
-        friendsList.innerHTML = '';
-
-        currentUser.friendsList.forEach(friendId => {
-            const friend = allUsers.find(user => user.id === friendId);
-            if (friend) {
-                const friendItem = document.createElement('p');
-                friendItem.textContent = `${friend.name} (ID: ${friend.id})`;
-                friendsList.appendChild(friendItem);
-            }
-        });
-    } else {
-        document.getElementById("friends-list").textContent = "У вас поки немає друзів.";
-    }
-}
-
-// Відкриття сторінки завдань
-function openTasks() {
-    document.getElementById("interface-screen").style.display = "none";
-    document.getElementById("tasks-screen").style.display = "block";
-
-    const tasks = [
-        { id: 1, description: "Subscribe to Telegram Channel", points: 10 },
-        { id: 2, description: "Invite a friend", points: 5 }
-    ];
-
-    const tasksList = document.getElementById("tasks-list");
-    tasksList.innerHTML = tasks.map(task => `<p>${task.description} - ${task.points} points <button onclick="completeTask(${task.points})">Complete</button></p>`).join("");
-}
-
-// Функція для завершення завдання та збільшення рівня
-function completeTask(points) {
-    updateLevel(points); // Додаємо поінти за виконане завдання
-    alert(`Завдання виконано! Ви отримали ${points} поінтів.`);
-}
-
-// Відкриття сторінки маркету
-function openMarket() {
-    document.getElementById("interface-screen").style.display = "none";
-    document.getElementById("market-screen").style.display = "block";
-}
-
-// Повернення назад
-function goBack() {
-    document.getElementById("friends-screen").style.display = "none";
-    document.getElementById("tasks-screen").style.display = "none";
-    document.getElementById("market-screen").style.display = "none";
+// Кнопка CLAIM
+document.getElementById("claim-button").addEventListener("click", function() {
+    updateLevel(10);  // Наприклад, додамо 10 балів
+    document.getElementById("main-screen").style.display = "none";
     document.getElementById("interface-screen").style.display = "block";
-}
+});
