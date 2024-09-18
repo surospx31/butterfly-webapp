@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 // Підключення до PostgreSQL
 const pool = new Pool({
     user: 'wellact_db_user',
-    host: 'postgresql://wellact_db_user:Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT@dpg-crlaf0ogph6c73e2g770-a.oregon-postgres.render.com/wellact_db',  // Заміни на зовнішній URL бази даних
+    host: 'dpg-crlaf0ogph6c73e2g770-a.oregon-postgres.render.com',  // Заміни на зовнішній URL бази даних
     database: 'wellact_db',
     password: 'Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT',
     port: 5432,
