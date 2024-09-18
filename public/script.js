@@ -1,16 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
     const user = window.Telegram.WebApp.initDataUnsafe.user;
 
-    const butterfly = document.getElementById("butterfly");
+    const initialPage = document.getElementById("initial-page");
+    const mainPage = document.getElementById("main-page");
     const getButton = document.getElementById("get-button");
     const usernameElement = document.getElementById("username");
     const avatarElement = document.getElementById("user-avatar");
 
-    // Відображаємо аватарку та нікнейм
+    // Відображаємо нікнейм та аватар користувача
     usernameElement.innerText = user.username;
-    avatarElement.src = user.photo_url || 'default-avatar.png';  // Якщо немає фото, використовуємо стандартну
+    avatarElement.src = user.photo_url || 'default-avatar.png'; // Якщо немає фото, використовуємо стандартну
 
-    // Коли користувач натискає GET
+    // Перевіряємо, чи отримав користувач метелика
+    checkIfUserGotButterfly();
+
+    // Якщо користувач натискає кнопку GET
     getButton.addEventListener("click", async () => {
         const userData = {
             id: user.id,
@@ -31,7 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (response.ok) {
-            getButton.style.display = "none";
+            // Після натискання кнопки GET, приховуємо стартову сторінку та показуємо головну
+            initialPage.style.display = "none";
+            mainPage.style.display = "block";
             showUserProfile(userData);
         } else {
             console.error('Помилка отримання метелика');
@@ -50,9 +56,24 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("referral-link").innerText = `Ваше реферальне посилання: ${userData.referralCode}`;
     }
 
+    // Перевірка чи користувач вже отримав метелика
+    async function checkIfUserGotButterfly() {
+        const response = await fetch(`/api/users/${user.id}`);
+        if (response.ok) {
+            const userData = await response.json();
+            if (userData.gotButterfly) {
+                // Якщо користувач вже отримав метелика, відразу показуємо головну сторінку
+                initialPage.style.display = "none";
+                mainPage.style.display = "block";
+                showUserProfile(userData);
+            }
+        } else {
+            console.error('Помилка завантаження користувача');
+        }
+    }
+
     // Обробка меню
     document.getElementById("home-btn").addEventListener("click", () => {
-        // Повернення до екрану з метеликом
         showUserProfile({
             name: user.username,
             level: 1, // Початковий рівень
@@ -62,16 +83,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("friends-btn").addEventListener("click", () => {
         alert("Ваше реферальне посилання: " + generateReferralCode());
-        // Реалізуй відображення друзів через API
     });
 
     document.getElementById("tasks-btn").addEventListener("click", () => {
         alert("Tasks coming soon...");
-        // Тут реалізуй логіку завдань
     });
 
     document.getElementById("market-btn").addEventListener("click", () => {
         alert("Market coming soon... Ton Connect will be added");
-        // Реалізуй Ton Connect
     });
 });
