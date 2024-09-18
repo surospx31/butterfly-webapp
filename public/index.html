@@ -3,44 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Butterfly Web App</title>
+    <title>Butterfly App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Сторінка з метеликом та кнопкою GET -->
     <div id="initial-page">
-        <img src="butterfly.png" id="butterfly">
+        <img src="butterfly.png" alt="Butterfly" class="butterfly-image">
         <button id="get-button">GET</button>
     </div>
 
-    <!-- Основна сторінка з рівнем, поінтами та кнопками меню -->
     <div id="main-page" style="display: none;">
-        <div id="header">
-            <img id="user-avatar" src="" alt="User Avatar">
-            <p id="username"></p>
-        </div>
-        <img src="butterfly.png" id="butterfly-main">
-        <div id="level-container">
-            <p id="level"></p>
-            <div id="progress-bar">
-                <div id="progress"></div>
-            </div>
-            <p id="points"></p>
-        </div>
-        <div id="referral">
-            <p id="referral-link"></p>
+        <div class="profile">
+            <img id="user-avatar" src="default-avatar.png" alt="Avatar" class="avatar">
+            <span id="username"></span>
         </div>
 
-        <div id="menu">
-            <button class="menu-btn" id="home-btn">HOME</button>
-            <button class="menu-btn" id="friends-btn">FRIENDS</button>
-            <button class="menu-btn" id="tasks-btn">TASKS</button>
-            <button class="menu-btn" id="market-btn">MARKET</button>
+        <div class="butterfly-info">
+            <img src="butterfly.png" alt="Butterfly" class="butterfly-image">
+            <div id="level">Level: 1</div>
+            <div id="points">Points: 0</div>
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <button id="home-btn">HOME</button>
+            <button id="friends-btn">FRIENDS</button>
+            <button id="tasks-btn">TASKS</button>
+            <button id="market-btn">MARKET</button>
+        </nav>
+
+        <div id="referral-section" class="referral-section" style="display: none;">
+            <p id="referral-link"></p>
         </div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 111 -->

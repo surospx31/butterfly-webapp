@@ -7,14 +7,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameElement = document.getElementById("username");
     const avatarElement = document.getElementById("user-avatar");
 
-    // Відображаємо нікнейм та аватар користувача
+    // Display the user's username and avatar
     usernameElement.innerText = user.username;
-    avatarElement.src = user.photo_url || 'default-avatar.png'; // Якщо немає фото, використовуємо стандартну
+    avatarElement.src = user.photo_url || 'default-avatar.png'; // Fallback to a default avatar
 
-    // Перевіряємо, чи отримав користувач метелика
+    // Check if the user has already received the butterfly
     checkIfUserGotButterfly();
 
-    // Якщо користувач натискає кнопку GET
+    // When the user clicks the GET button
     getButton.addEventListener("click", async () => {
         const userData = {
             id: user.id,
@@ -22,10 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
             points: 0,
             level: 1,
             referralCode: generateReferralCode(),
-            referredBy: null  // Можливо, буде використано для реферальної логіки
+            referredBy: null  // For referral logic later
         };
 
-        // Надсилаємо дані на сервер
+        // Send the data to the server
         const response = await fetch('/api/users', {
             method: 'POST',
             headers: {
@@ -35,54 +35,54 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (response.ok) {
-            // Після натискання кнопки GET, приховуємо стартову сторінку та показуємо головну
+            // After clicking GET, hide the initial page and show the main page
             initialPage.style.display = "none";
             mainPage.style.display = "block";
             showUserProfile(userData);
         } else {
-            console.error('Помилка отримання метелика');
+            console.error('Error getting the butterfly');
         }
     });
 
-    // Генерація унікального реферального коду
+    // Generate a unique referral code
     function generateReferralCode() {
         return 'ref-' + Math.random().toString(36).substr(2, 8);
     }
 
-    // Відображення профілю користувача
+    // Show the user's profile information
     function showUserProfile(userData) {
         document.getElementById("level").innerText = `Level: ${userData.level}`;
         document.getElementById("points").innerText = `Points: ${userData.points}`;
-        document.getElementById("referral-link").innerText = `Ваше реферальне посилання: ${userData.referralCode}`;
+        document.getElementById("referral-link").innerText = `Your referral link: ${userData.referralCode}`;
     }
 
-    // Перевірка чи користувач вже отримав метелика
+    // Check if the user already got the butterfly
     async function checkIfUserGotButterfly() {
         const response = await fetch(`/api/users/${user.id}`);
         if (response.ok) {
             const userData = await response.json();
             if (userData.gotButterfly) {
-                // Якщо користувач вже отримав метелика, відразу показуємо головну сторінку
+                // If the user has already received the butterfly, show the main page directly
                 initialPage.style.display = "none";
                 mainPage.style.display = "block";
                 showUserProfile(userData);
             }
         } else {
-            console.error('Помилка завантаження користувача');
+            console.error('Error loading user data');
         }
     }
 
-    // Обробка меню
+    // Menu button handlers
     document.getElementById("home-btn").addEventListener("click", () => {
         showUserProfile({
             name: user.username,
-            level: 1, // Початковий рівень
-            points: 0 // Початкові поінти
+            level: 1, // Starting level
+            points: 0 // Starting points
         });
     });
 
     document.getElementById("friends-btn").addEventListener("click", () => {
-        alert("Ваше реферальне посилання: " + generateReferralCode());
+        alert("Your referral link: " + generateReferralCode());
     });
 
     document.getElementById("tasks-btn").addEventListener("click", () => {
@@ -93,4 +93,3 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Market coming soon... Ton Connect will be added");
     });
 });
-// 1
