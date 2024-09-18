@@ -1,83 +1,79 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const user = window.Telegram.WebApp.initDataUnsafe.user;
-
+    const user = window.Telegram.WebApp.initDataUnsafe.user || { username: 'guest', id: null };
+    
     const initialPage = document.getElementById("initial-page");
     const mainPage = document.getElementById("main-page");
     const getButton = document.getElementById("get-button");
     const usernameElement = document.getElementById("username");
     const avatarElement = document.getElementById("user-avatar");
 
-    // Display the user's username and avatar
     usernameElement.innerText = user.username;
-    avatarElement.src = user.photo_url || 'default-avatar.png'; // Fallback to a default avatar
+    avatarElement.src = user.photo_url || 'default-avatar.png';
 
-    // Check if the user has already received the butterfly
     checkIfUserGotButterfly();
 
-    // When the user clicks the GET button
     getButton.addEventListener("click", async () => {
         const userData = {
-            id: user.id,
-            name: user.username,
+            id: user.id || Date.now(), // fallback ID if user.id is not available
+            name: user.username || 'guest',
             points: 0,
             level: 1,
             referralCode: generateReferralCode(),
-            referredBy: null  // For referral logic later
+            referredBy: null
         };
 
-        // Send the data to the server
-        const response = await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
+        try {
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
 
-        if (response.ok) {
-            // After clicking GET, hide the initial page and show the main page
-            initialPage.style.display = "none";
-            mainPage.style.display = "block";
-            showUserProfile(userData);
-        } else {
-            console.error('Error getting the butterfly');
+            if (response.ok) {
+                initialPage.style.display = "none";
+                mainPage.style.display = "block";
+                showUserProfile(userData);
+            } else {
+                console.error('Error getting the butterfly');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
         }
     });
 
-    // Generate a unique referral code
     function generateReferralCode() {
         return 'ref-' + Math.random().toString(36).substr(2, 8);
     }
 
-    // Show the user's profile information
     function showUserProfile(userData) {
         document.getElementById("level").innerText = `Level: ${userData.level}`;
         document.getElementById("points").innerText = `Points: ${userData.points}`;
         document.getElementById("referral-link").innerText = `Your referral link: ${userData.referralCode}`;
     }
 
-    // Check if the user already got the butterfly
     async function checkIfUserGotButterfly() {
-        const response = await fetch(`/api/users/${user.id}`);
-        if (response.ok) {
-            const userData = await response.json();
-            if (userData.gotButterfly) {
-                // If the user has already received the butterfly, show the main page directly
-                initialPage.style.display = "none";
-                mainPage.style.display = "block";
-                showUserProfile(userData);
+        try {
+            const response = await fetch(`/api/users/${user.id}`);
+            if (response.ok) {
+                const userData = await response.json();
+                if (userData.gotButterfly) {
+                    initialPage.style.display = "none";
+                    mainPage.style.display = "block";
+                    showUserProfile(userData);
+                }
+            } else {
+                console.error('Error loading user data');
             }
-        } else {
-            console.error('Error loading user data');
+        } catch (error) {
+            console.error('Fetch error:', error);
         }
     }
 
-    // Menu button handlers
     document.getElementById("home-btn").addEventListener("click", () => {
         showUserProfile({
-            name: user.username,
-            level: 1, // Starting level
-            points: 0 // Starting points
+            name: user.username || 'guest',
+            level: 1,
+            points: 0
         });
     });
 
@@ -90,6 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("market-btn").addEventListener("click", () => {
-        alert("Market coming soon... Ton Connect will be added");
+        alert("Market coming soon...");
     });
 });
