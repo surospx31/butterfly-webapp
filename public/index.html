@@ -3,56 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wellact Mini App</title>
+    <title>Butterfly Web App</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Екран з метеликом та кнопкою CLAIM -->
-    <div id="main-screen" style="display:none;">
-        <img src="butterfly.png" alt="Butterfly" class="butterfly">
-        <button id="claim-button">CLAIM</button>
-    </div>
-
-    <!-- Сторінка рівня після натискання CLAIM -->
-    <div id="interface-screen" style="display:none;">
-        <img src="butterfly.png" alt="Butterfly" class="butterfly">
-        <div class="level">1 LVL</div>
-        <div class="progress-bar">
-            <div class="progress"></div>
+    <div id="user-profile">
+        <div id="header">
+            <img id="user-avatar" src="" alt="User Avatar">
+            <p id="username"></p>
         </div>
-
-        <div class="bottom-menu">
-            <button class="menu-button" onclick="openMain()">MAIN</button>
-            <button class="menu-button" onclick="openFriends()">FRIENDS</button>
-            <button class="menu-button" onclick="openTasks()">TASKS</button>
-            <button class="menu-button" onclick="openMarket()">MARKET</button>
+        <img src="butterfly.png" id="butterfly">
+        <button id="get-button">GET</button>
+        <div id="level-container">
+            <p id="level"></p>
+            <div id="progress-bar">
+                <div id="progress"></div>
+            </div>
+            <p id="points"></p>
+        </div>
+        <div id="referral">
+            <p id="referral-link"></p>
         </div>
     </div>
 
-    <!-- Сторінка друзів -->
-    <div id="friends-screen" style="display:none;">
-        <button class="back-button" onclick="goBack()">← Back</button>
-        <h2>Your Friends</h2>
-        <p id="referral-link">Your referral link: </p>
-        <div id="friends-list"></div>
-    </div>
-
-    <!-- Сторінка завдань -->
-    <div id="tasks-screen" style="display:none;">
-        <button class="back-button" onclick="goBack()">← Back</button>
-        <h2>Tasks</h2>
-        <div id="tasks-list"></div>
-    </div>
-
-    <!-- Сторінка маркету -->
-    <div id="market-screen" style="display:none;">
-        <button class="back-button" onclick="goBack()">← Back</button>
-        <h2>Coming soon...</h2>
+    <div id="menu">
+        <button class="menu-btn" id="home-btn">HOME</button>
+        <button class="menu-btn" id="friends-btn">FRIENDS</button>
+        <button class="menu-btn" id="tasks-btn">TASKS</button>
+        <button class="menu-btn" id="market-btn">MARKET</button>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 111 -->

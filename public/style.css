@@ -1,59 +1,78 @@
 body {
-    background-color: black;
-    color: white;
     font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
+    background-color: #f9f9f9;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
 }
 
-.butterfly {
-    width: 50vw;
-    max-width: 200px;
-    height: auto;
-    margin-bottom: 5vh;
+#user-profile {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-button {
-    padding: 10px 20px;
-    margin: 2vh;
-    border: none;
+#header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+#butterfly {
+    width: 150px;
+    height: 150px;
+}
+
+#level-container {
+    margin: 20px 0;
+}
+
+#progress-bar {
+    width: 100%;
+    background-color: #ccc;
+    height: 10px;
     border-radius: 5px;
-    background-color: grey;
-    color: white;
-    cursor: pointer;
-    font-size: 4vw;
-    max-width: 80vw;
+    overflow: hidden;
 }
 
-.menu-button, .back-button {
-    padding: 10px;
-    margin: 5px;
-    background-color: grey;
-    color: white;
-    font-size: 1.2em;
-}
-
-.progress-bar {
-    width: 80vw;
-    height: 5vh;
-    background-color: white;
-    border-radius: 10px;
-    margin-bottom: 5vh;
-}
-
-.progress {
-    width: 0%;
+#progress {
     height: 100%;
-    background-color: green;
+    background-color: #4caf50;
+    width: 25%; /* Приклад, що це 25% */
 }
 
-#tasks-list, #friends-list {
-    text-align: left;
-    margin: 20px;
+#menu {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.menu-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.menu-btn:hover {
+    background-color: #45a049;
+}
+
+#referral-link {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
 }
