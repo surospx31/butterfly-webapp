@@ -1,82 +1,63 @@
 const express = require('express');
 const { Pool } = require('pg');
-const cors = require('cors');
-
-// Ініціалізуємо сервер
-const app = express();
-const PORT = process.env.PORT || 10000;
+const bodyParser = require('body-parser');
 
 // Підключення до PostgreSQL
 const pool = new Pool({
-    user: 'wellact_db_user',
-    host: 'dpg-crlaf0ogph6c73e2g770-a.oregon-postgres.render.com',  // Заміни на зовнішній URL бази даних
-    database: 'wellact_db',
-    password: 'Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT',
-    port: 5432,
-    ssl: { rejectUnauthorized: false }
+    user: 'postgres',       // Заміни на свого користувача PostgreSQL
+    host: 'localhost',           // Якщо використовуєш локальну базу
+    database: 'wellact',         // Назва бази даних
+    password: 'fughzxio31052005d',   // Пароль користувача
+    port: 5432                   // Порт за замовчуванням для PostgreSQL
 });
 
-// Middleware для обробки JSON та CORS
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));  // Для обробки статичних файлів, таких як index.html, стилі та скрипти
+const app = express();
+app.use(bodyParser.json());
 
-// Маршрут для перевірки стану сервера
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
-
-// Створення або отримання користувача
+// API для створення або оновлення користувача
 app.post('/api/users', async (req, res) => {
-    const { id, name, points = 0, level = 1, referralCode, referredBy } = req.body;
+    const { id, name, points, level, friends, referralCode, friendsList, referredBy } = req.body;
 
     try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT * FROM users WHERE id=$1', [id]);
+        // Перевіряємо, чи користувач вже існує
+        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
 
         if (result.rows.length === 0) {
-            // Додаємо нового користувача
-            const insertQuery = `
-                INSERT INTO users (id, name, points, level, referral_code, referred_by) 
-                VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-            const newUser = await client.query(insertQuery, [id, name, points, level, referralCode, referredBy]);
-            res.json(newUser.rows[0]);
+            // Створення нового користувача
+            await pool.query(
+                'INSERT INTO users (id, name, points, level, friends, referralCode, friendsList, referredBy) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [id, name, points, level, friends, referralCode, friendsList, referredBy]
+            );
         } else {
-            // Користувач вже існує
-            res.json(result.rows[0]);
+            // Оновлення наявного користувача
+            await pool.query(
+                'UPDATE users SET points = $1, level = $2, friends = $3, referralCode = $4, friendsList = $5, referredBy = $6 WHERE id = $7',
+                [points, level, friends, referralCode, friendsList, referredBy, id]
+            );
         }
-        client.release();
+
+        res.status(200).send({ message: 'User data saved or updated' });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Помилка збереження даних користувача');
+        res.status(500).send('Server error');
     }
 });
 
-// Обробка реферального коду
-app.post('/api/referrals', async (req, res) => {
-    const { referralCode, newUserId } = req.body;
+// API для отримання користувача за ID
+app.get('/api/users/:id', async (req, res) => {
     try {
-        const client = await pool.connect();
-        const referrer = await client.query('SELECT * FROM users WHERE referral_code=$1', [referralCode]);
+        const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
 
-        if (referrer.rows.length > 0) {
-            const referrerId = referrer.rows[0].id;
-            await client.query('UPDATE users SET points = points + 10 WHERE id = $1', [referrerId]);  // Наприклад, 10 поінтів за друга
-            await client.query('INSERT INTO friends(referrer_id, friend_id) VALUES ($1, $2)', [referrerId, newUserId]);
-            res.send('Referral оброблений');
-        } else {
-            res.status(400).send('Невірний реферальний код');
+        if (result.rows.length === 0) {
+            return res.status(404).send('User not found');
         }
 
-        client.release();
+        res.send(result.rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Помилка обробки рефералу');
+        res.status(500).send('Server error');
     }
 });
 
-// Запуск сервера
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Сервер запущений на порту ${port}`);
-});
+app.listen(port, () => console.log(`Listening on port ${port}`));
