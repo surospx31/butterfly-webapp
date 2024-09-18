@@ -93,3 +93,4 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Market coming soon... Ton Connect will be added");
     });
 });
+// 1
