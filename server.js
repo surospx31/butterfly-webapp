@@ -7,10 +7,16 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Підключення до PostgreSQL через змінну середовища
+const { Pool } = require('pg');
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,  // Використовуємо змінну середовища для PostgreSQL на Render
-    ssl: { rejectUnauthorized: false }  // SSL підключення, необхідне для Render
+    user: 'wellact_db_user',
+    host: 'your-external-database-url',  // Переконайся, що це зовнішній URL бази даних
+    database: 'wellact_db',
+    password: 'Bp5fQmpuNbyUKeEVxyU7Ccv4ouuGvAHT',
+    port: 5432,
 });
+
 
 app.use(bodyParser.json());
 
