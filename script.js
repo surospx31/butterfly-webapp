@@ -1,16 +1,11 @@
-// Ініціалізація Supabase
-const supabaseUrl = 'https://xtmtpukdmqjimgycpwtx.supabase.co'; // Замініть на свій URL
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bXRwdWtkbXFqaW1neWNwd3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY2OTIxMDcsImV4cCI6MjA0MjI2ODEwN30.kzcR2cBf-E_jJjMy9WXekp14Q_qYVjwMInPKUCeHICg'; // Вставте свій API ключ
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
 document.addEventListener("DOMContentLoaded", async function() {
-    const userId = '12345';  // Наприклад, отриманий з Telegram WebApp або іншого джерела
+    const userId = '12345';  // Получите реальный userId из Telegram WebApp или другого источника
 
-    // Зчитуємо користувача з бази даних Supabase
-    let user = await getUserFromSupabase(userId);
+    // Получаем пользователя с сервера
+    let user = await getUserFromServer(userId);
 
     if (!user) {
-        // Якщо користувач не існує, зберігаємо нові дані
+        // Если пользователь не существует, создаём нового
         const newUser = {
             id: userId,
             name: 'John Doe',
@@ -19,14 +14,15 @@ document.addEventListener("DOMContentLoaded", async function() {
             referral_code: generateReferralCode(),
             friends: 0
         };
-        await saveUserToSupabase(newUser);
+        user = await saveUserToServer(newUser);
     } else {
-        console.log('Користувач вже існує', user);
-        updateUI(user);  // Оновлюємо інтерфейс користувача з отриманими даними
+        console.log('Пользователь уже существует', user);
     }
+
+    updateUI(user);  // Обновляем интерфейс с полученными данными
 });
 
-// Генерація унікального реферального коду
+// Генерация уникального реферального кода
 function generateReferralCode() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789';
     let result = '';
@@ -36,75 +32,94 @@ function generateReferralCode() {
     return result;
 }
 
-// Збереження нового користувача в Supabase
-async function saveUserToSupabase(userData) {
-    const { data, error } = await supabase
-        .from('users')
-        .insert([userData]);
-
-    if (error) {
-        console.error('Помилка збереження користувача:', error);
-    } else {
-        console.log('Користувач успішно збережений:', data);
-    }
-}
-
-// Зчитування даних користувача з Supabase
-async function getUserFromSupabase(userId) {
-    const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-    if (error) {
-        console.error('Помилка отримання користувача:', error);
+// Получение пользователя с сервера
+async function getUserFromServer(userId) {
+    try {
+        const response = await fetch(`/api/user/${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            console.error('Ошибка при получении пользователя');
+            return null;
+        }
+    } catch (error) {
+        console.error('Ошибка сети:', error);
         return null;
     }
-
-    console.log('Отримані дані користувача:', data);
-    return data;
 }
 
-// Оновлення даних користувача в Supabase
-async function updateUserInSupabase(userId, updatedData) {
-    const { data, error } = await supabase
-        .from('users')
-        .update(updatedData)
-        .eq('id', userId);
-
-    if (error) {
-        console.error('Помилка оновлення даних користувача:', error);
-    } else {
-        console.log('Дані користувача оновлені:', data);
+// Сохранение нового пользователя на сервере
+async function saveUserToServer(userData) {
+    try {
+        const response = await fetch('/api/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            console.error('Ошибка при сохранении пользователя');
+            return null;
+        }
+    } catch (error) {
+        console.error('Ошибка сети:', error);
+        return null;
     }
 }
 
-// Оновлення інтерфейсу користувача
+// Обновление данных пользователя на сервере
+async function updateUserInServer(userId, updatedData) {
+    try {
+        const response = await fetch(`/api/user/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            console.error('Ошибка при обновлении пользователя');
+            return null;
+        }
+    } catch (error) {
+        console.error('Ошибка сети:', error);
+        return null;
+    }
+}
+
+// Обновление интерфейса пользователя
 function updateUI(userData) {
     document.querySelector(".level").textContent = `${userData.level} LVL`;
-    const progressPercentage = (userData.points / ((userData.level) * 5)) * 100;
+    const progressPercentage = (userData.points / (userData.level * 5)) * 100;
     document.querySelector(".progress").style.width = `${progressPercentage}%`;
 }
 
-// Оновлення рівня і прогрес бару
-function updateLevel(points) {
-    let requiredPoints = (userData.level) * 5;
-    userData.points += points;
+// Обновление уровня и прогресс-бара
+async function updateLevel(points) {
+    let requiredPoints = user.level * 5;
+    user.points += points;
 
-    if (userData.points >= requiredPoints) {
-        userData.level += 1;
-        userData.points = 0;
-        requiredPoints = (userData.level) * 5;
+    if (user.points >= requiredPoints) {
+        user.level += 1;
+        user.points = 0;
+        requiredPoints = user.level * 5;
     }
 
-    updateUI(userData);
-    updateUserInSupabase(userData.id, { points: userData.points, level: userData.level });
+    updateUI(user);
+    await updateUserInServer(user.id, { points: user.points, level: user.level });
 }
 
 // Кнопка CLAIM
 document.getElementById("claim-button").addEventListener("click", function() {
-    updateLevel(10);  // Наприклад, додамо 10 балів
+    updateLevel(10);  // Например, добавляем 10 баллов
     document.getElementById("main-screen").style.display = "none";
     document.getElementById("interface-screen").style.display = "block";
 });
