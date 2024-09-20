@@ -81,6 +81,7 @@ bot.launch().then(() => {
 async function getUserByTelegramId(telegram_id) {
   try {
     const result = await pool.query('SELECT * FROM users WHERE telegram_id = $1', [telegram_id]);
+    console.log('Результат запроса getUserByTelegramId:', result.rows[0]);
     return result.rows[0];
   } catch (error) {
     console.error('Ошибка при получении пользователя:', error);
@@ -98,6 +99,7 @@ async function createUser(telegram_id, referral_code, referred_by) {
       // Увеличиваем количество друзей у того, кто пригласил
       await pool.query('UPDATE users SET friends = friends + 1 WHERE referral_code = $1', [referred_by]);
     }
+    console.log('Пользователь создан с telegram_id:', telegram_id);
   } catch (error) {
     console.error('Ошибка при создании пользователя:', error);
     throw error;
@@ -124,6 +126,10 @@ function checkTelegramAuth(initData) {
     .sort()
     .join('\n');
   const hmac = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+
+  console.log('Сгенерированный HMAC:', hmac);
+  console.log('Полученный hash из initData:', hash);
+
   return hmac === hash;
 }
 
@@ -131,7 +137,10 @@ function checkTelegramAuth(initData) {
 app.post('/api/getUser', async (req, res) => {
   const { initData } = req.body;
 
+  console.log('Получено initData на сервере:', initData);
+
   if (!checkTelegramAuth(initData)) {
+    console.error('Проверка Telegram Auth не пройдена.');
     return res.status(403).json({ error: 'Недействительные данные авторизации Telegram' });
   }
 
@@ -170,7 +179,11 @@ app.post('/api/getUser', async (req, res) => {
         ]
       );
 
+      console.log('Новый пользователь создан:', newUser);
+
       user = newUser;
+    } else {
+      console.log('Пользователь уже существует:', user);
     }
 
     res.json(user);
@@ -184,7 +197,11 @@ app.post('/api/getUser', async (req, res) => {
 app.post('/api/updateUser', async (req, res) => {
   const { initData, data } = req.body;
 
+  console.log('Получено initData на сервере для updateUser:', initData);
+  console.log('Данные для обновления пользователя:', data);
+
   if (!checkTelegramAuth(initData)) {
+    console.error('Проверка Telegram Auth не пройдена при обновлении пользователя.');
     return res.status(403).json({ error: 'Недействительные данные авторизации Telegram' });
   }
 
@@ -206,7 +223,11 @@ app.post('/api/updateUser', async (req, res) => {
     values.push(telegram_id);
 
     const query = `UPDATE users SET ${fields.join(', ')} WHERE telegram_id = $${index} RETURNING *`;
+    console.log('SQL запрос для обновления пользователя:', query);
+    console.log('Значения для запроса:', values);
+
     const result = await pool.query(query, values);
+    console.log('Результат обновления пользователя:', result.rows[0]);
 
     res.json(result.rows[0]);
   } catch (error) {

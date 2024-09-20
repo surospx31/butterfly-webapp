@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", async function() {
     const tg = window.Telegram.WebApp;
     const initData = tg.initData;
   
+    console.log('Получено initData на клиенте:', initData);
+  
     if (!initData) {
       alert('Ошибка: не удалось получить данные авторизации из Telegram.');
       return;
@@ -28,15 +30,22 @@ document.addEventListener("DOMContentLoaded", async function() {
     // Функции для работы с сервером
     async function getUserFromServer(initData) {
       try {
+        console.log('Отправляем initData на сервер:', initData);
+  
         const response = await fetch('/api/getUser', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ initData }),
         });
+  
         if (response.ok) {
-          return await response.json();
+          const data = await response.json();
+          console.log('Получены данные пользователя от сервера:', data);
+          return data;
         } else {
-          console.error('Ошибка при получении пользователя с сервера.');
+          const errorText = await response.text();
+          console.error(`Ошибка при получении пользователя с сервера: ${response.status} ${response.statusText}`);
+          console.error('Ответ сервера:', errorText);
           return null;
         }
       } catch (error) {
@@ -47,16 +56,23 @@ document.addEventListener("DOMContentLoaded", async function() {
   
     async function updateUserOnServer(data) {
       try {
+        console.log('Отправляем данные для обновления пользователя на сервер:', data);
+  
         const response = await fetch('/api/updateUser', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData, data }),
+          body: JSON.stringify({ initData: tg.initData, data }),
         });
+  
         if (response.ok) {
-          user = await response.json();
-          return user;
+          const updatedUser = await response.json();
+          console.log('Получены обновленные данные пользователя от сервера:', updatedUser);
+          user = updatedUser;
+          return updatedUser;
         } else {
-          console.error('Ошибка при обновлении пользователя на сервере.');
+          const errorText = await response.text();
+          console.error(`Ошибка при обновлении пользователя на сервере: ${response.status} ${response.statusText}`);
+          console.error('Ответ сервера:', errorText);
           return null;
         }
       } catch (error) {
