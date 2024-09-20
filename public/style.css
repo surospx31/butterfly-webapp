@@ -1,0 +1,37 @@
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+  
+  .butterfly {
+    width: 200px;
+    margin-top: 20px;
+  }
+  
+  #start-screen, #main-screen, #friends-screen, #tasks-screen, #market-screen {
+    display: none;
+  }
+  
+  .menu {
+    margin-top: 20px;
+  }
+  
+  .menu-button {
+    margin: 5px;
+  }
+  
+  .progress-bar {
+    width: 80%;
+    height: 20px;
+    background-color: #ddd;
+    margin: 20px auto;
+    border-radius: 10px;
+  }
+  
+  .progress {
+    height: 100%;
+    width: 0%;
+    background-color: #4caf50;
+    border-radius: 10px;
+  }
+  
